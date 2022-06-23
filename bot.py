@@ -1,5 +1,6 @@
 from email import header
 from http.client import ResponseNotReady
+from multiprocessing.connection import wait
 from secrets import token_urlsafe
 from urllib import response
 from webbrowser import get
@@ -42,11 +43,6 @@ client = commands.Bot(command_prefix='!', help_command=None)
 @client.event
 async def on_ready():
   print('Bot is ready')
-
-
-@client.command()
-async def name(ctx):
-  await ctx.send(f'{ctx.author}')
 
 @client.command()
 async def create(ctx, tourney):
@@ -173,12 +169,16 @@ async def result(ctx, *message):
 
 @client.command()
 async def start(ctx):
-  channel = ctx.channel.name
-  tourney_id = gettourneyid(channel)
-  print(tourney_id)
-  response = start_tournament(tourney_id)
-  if response == 200:
-    await ctx.send(f'Tourney **{channel}** has started!!')
+  guild = ctx.message.guild
+  if ctx.author.guild_permissions.manage_channels:
+    channel = ctx.channel.name
+    tourney_id = gettourneyid(channel)
+    print(tourney_id)
+    response = start_tournament(tourney_id)
+    if response == 200:
+      await ctx.send(f'Tourney **{channel}** has started!!')
+  else:
+    await ctx.send('You do not have permission to start a tourney')
 
 @client.command()
 async def dmme(ctx):
