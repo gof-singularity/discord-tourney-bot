@@ -4,7 +4,9 @@ import requests, json
 from PIL import Image
 import cairosvg
 import os
-
+import sys
+import cv2
+import numpy as np
 def create_tournament(tournament_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
@@ -91,16 +93,26 @@ def crop_rounds_images(tournament_id):
         os.remove(f'{tournament_id}.png')
     cairosvg.surface.PNGSurface.convert(svg_code.text, write_to=f'{tournament_id}.png')
     im = Image.open(f'{tournament_id}.png')
+    if im.mode in ('RGBA', 'LA'):
+        background = Image.new(im.mode[:-1], im.size, (255, 255, 255))
+        background.paste(im, im.split()[-1])
+        im = background
+    im.convert("RGB").save(f'{tournament_id}.jpg', quality=100)
     final_directory = os.path.join(os.getcwd(), f'{tournament_id}')
     if not os.path.exists(final_directory):
         os.makedirs(final_directory)
     OUTPUT_DIR = f'{tournament_id}'
+    im = Image.open(f'{tournament_id}.jpg')
     width, height = im.size
     im_crop = im.crop((0, 108, width, height-75))
-    im_crop.save(f'{tournament_id}.png', quality=100)
+    im_crop.save(f'{tournament_id}.jpg', quality=100)
     for i, row in enumerate(split_into_rows(im_crop, im_crop.height/((participant_count*(participant_count-1)/2)//(participant_count//2)))):
-        save_path = os.path.join(OUTPUT_DIR, f'{i+1}.png')
+        save_path = os.path.join(OUTPUT_DIR, f'{i+1}.jpg')
         row.save(save_path)
 
+def get_round_image(tournament_id, round):
+    if os.path.exists(f'{tournament_id}/{round}.jpg'):
+        return f'{tournament_id}/{round}.jpg'
+    else: return "There is no such tournament or round"
 
-print(add_participants(create_tournament('new one'), 'mal'))
+print(get_round_image(11330764, 2))
