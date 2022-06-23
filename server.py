@@ -144,6 +144,3 @@ def end_tournament(tournament_id):
     if response.status_code!=200:
         return "All players should play with each other before finishing"
     return "Congratulations, tournament has finished"
-
-# print(end_tournament(11331400))
-# hti.screenshot(html_file='response.html', save_as='blue_page.png')
