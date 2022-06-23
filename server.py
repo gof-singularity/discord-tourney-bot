@@ -4,9 +4,9 @@ import requests, json
 from PIL import Image
 import cairosvg
 import os
-import sys
-import cv2
-import numpy as np
+from html2image import Html2Image
+hti = Html2Image()
+import bs4
 def create_tournament(tournament_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
@@ -115,4 +115,22 @@ def get_round_image(tournament_id, round):
         return f'{tournament_id}/{round}.jpg'
     else: return "There is no such tournament or round"
 
-print(get_round_image(11330764, 2))
+def get_leaderboard(tournament_id):
+    response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}.json',
+                            params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                            headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    unique_hash = json.loads(response.text)['tournament']['url']
+    response2 = requests.get(f'https://challonge.com/{unique_hash}/standings',
+                       params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                       headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    with open("response.html", "w") as f:
+        f.write(response2.text)
+    soup = bs4.BeautifulSoup(response2.text, "html")
+    div = soup.find("div", {"class": "standings-container"})
+    content = str(div)
+    hti.screenshot(html_str=content, save_as=f'{tournament_id}_leaderboard.png')
+    return f'{tournament_id}_leaderboard.png'
+
+
+print(get_leaderboard(11331400))
+# hti.screenshot(html_file='response.html', save_as='blue_page.png')
