@@ -1,4 +1,5 @@
 from email import header
+from http.client import ResponseNotReady
 from secrets import token_urlsafe
 from urllib import response
 from webbrowser import get
@@ -8,7 +9,7 @@ import requests
 import json
 import re
 
-from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants, get_round_image
+from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants, get_round_image, get_leaderboard, end_tournament
 
 tourney_names_ids = []
 
@@ -238,5 +239,23 @@ async def round(ctx, round):
     picture = discord.File(f)
     await ctx.send(file=picture)
 
+
+@client.command()
+async def board(ctx):
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  path=get_leaderboard(tourney_id)
+
+  with open(path, 'rb') as f:
+    picture = discord.File(f)
+    await ctx.send(file=picture)
+
+@client.command()
+async def end(ctx):
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+
+  response = end_tournament(tourney_id)
+  await ctx.send(response)
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
 
