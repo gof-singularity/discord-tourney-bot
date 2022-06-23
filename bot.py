@@ -48,7 +48,7 @@ async def name(ctx):
   await ctx.send(f'{ctx.author}')
 
 @client.command()
-async def createtourney(ctx, tourney):
+async def create(ctx, tourney):
     guild = ctx.message.guild
     if ctx.author.guild_permissions.manage_channels:
       await guild.create_text_channel(name=f'{tourney}')
@@ -97,7 +97,7 @@ async def addme(ctx):
 
 
 @client.command()
-async def tourneyresult(ctx, *message):
+async def result(ctx, *message):
     
   print(ctx.author)
   print(ctx.author.id)
@@ -171,7 +171,7 @@ async def tourneyresult(ctx, *message):
 
 
 @client.command()
-async def starttourney(ctx):
+async def start(ctx):
   channel = ctx.channel.name
   tourney_id = gettourneyid(channel)
   print(tourney_id)
@@ -231,7 +231,7 @@ async def round(ctx, round):
   tourney_id = gettourneyid(channel)
   src=get_round_image(tourney_id, int(round))
   if not src:
-    print("There is no such tournament or round")
+    await ctx.send("**error**: There is no such tournament or round")
 
   
   with open(src, 'rb') as f:
