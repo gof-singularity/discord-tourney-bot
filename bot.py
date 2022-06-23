@@ -1,8 +1,12 @@
+from email import header
 from secrets import token_urlsafe
+from urllib import response
 import discord
 from discord.ext import commands
 import requests
 import json
+
+from server import get_matches, start_tournament
 
 tourney_names_ids = []
 
@@ -14,6 +18,10 @@ def convertTuple(tup):
       
       str = str + item + ' '
   return str
+def gettourneyid(channelname):
+  for item in tourney_names_ids:
+    if item["channelname"] == channelname:
+      return item["id"]
 
 client = commands.Bot(command_prefix='!')
 
@@ -66,16 +74,18 @@ async def addme(ctx):
 
 @client.command()
 async def tourneyresult(ctx, *message):
-  print(message)
+  channel = ctx.channel.name
   s = convertTuple(message)
-
+  
   await ctx.send(s.split('\n'))
   
 
 @client.command()
 async def starttourney(ctx):
-  url = ''
-  response = requests.get(url)
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  print(tourney_id)
+  response = start_tournament(tourney_id)
   await ctx.send(response)
 
 @client.command()
@@ -85,4 +95,14 @@ async def dmme(ctx):
   #response = client.wait_for_message(author=ctx.message.author, timeout=30) 
   #await ctx.send(response) 
 
+@client.command()
+async def getmatches(ctx):
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  response = get_matches(tourney_id)
+  print(response)
+  await ctx.send(response)
+
+
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
+
