@@ -21,13 +21,12 @@ def set_winner(tournament_id, match_id, winner_id: str):
                           params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
                                   "match[winner_id]": winner_id, "match[scores_csv]": score},
                           headers={"User-Agent": "PostmanRuntime/7.29.0"})
-    data_json = json.loads(response.text)
-    return data_json
+    return response.status_code
 
 def start_tournament(tournament_id):
     response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/start.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
-    return json.loads(response.text)
+    return response.status_code
 
 print(set_winner(11329318, 280540812, 174301808))
