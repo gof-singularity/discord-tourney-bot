@@ -8,8 +8,11 @@ import os
 def create_tournament(tournament_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
-                                     "name": tournament_name, "type": "round robin", "rankedBy": "points scored",
-                                     "startAt": "2022-06-22T03:00:00"},
+                                     "tournament[name]": tournament_name, 
+                                     "tournament[tournament_type]": "round robin", 
+                                     "tournament[open_signup]": "false", 
+                                     "tournament[ranked_by]": "points scored",
+                                     "tournament[start_at]": "2022-06-22T03:00:00"},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     return json.loads(response.text)['tournament']['id']
 
@@ -91,4 +94,5 @@ def crop_rounds_images(tournament_id):
         row.save(save_path)
 
 
-print(start_tournament(11330764))
+#print(start_tournament(11330764))
+#create_tournament('hello')
