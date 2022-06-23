@@ -4,6 +4,18 @@ from discord.ext import commands
 import requests
 import json
 
+tourney_names_ids = []
+
+def convertTuple(tup):
+  str = ''
+  for item in tup:
+      if item.startswith('@') or item.startswith('Round'):
+        item = '\n' + item
+      
+      str = str + item + ' '
+  return str
+
+
 client = commands.Bot(command_prefix='!')
 @client.event
 async def on_ready():
@@ -27,20 +39,40 @@ async def createtourney(ctx, tourney):
         obj = json.loads(response.text)
         tourney_id = obj["id"]
 
-        f=open('id.txt', 'w')
-        f.write(str(tourney_id))
-        f.close()
+        tourney_names_id = {} 
+        tourney_names_id["id"] = tourney_id
+        tourney_names_id["channelname"] = tourney
+
+        tourney_names_ids.append(tourney_names_id)
+
+        print(tourney_names_ids)
+
         await ctx.send(response.text)
 
 
 @client.command()
 async def addme(ctx):
   username = str(ctx.author).split('#')[0]
-  f= open("id.txt","r")
-  tourney_id = f.read()
-  f.close()
+  channel = ctx.channel.name
+  tourney_id = -1
+  for item in tourney_names_ids:
+    if item["channelname"] == channel:
+      tourney_id = item["id"]
+      print(tourney_id)
+      
+  if tourney_id == -1:
+    print('invalid tourney_id')
+    return
+
+
   response = requests.post('http://localhost:8080/tournament/add-players', json = {"id": f'{tourney_id}', "playerList": [f'{username}']})
   await ctx.send(response.text)
 
+@client.command()
+async def tourneyresult(ctx, *message):
+  print(message)
+  s = convertTuple(message)
 
+  await ctx.send(s.split('\n'))
+  
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
