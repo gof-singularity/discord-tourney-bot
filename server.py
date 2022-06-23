@@ -8,14 +8,23 @@ import os
 def create_tournament(tournament_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
-                                     "tournament[name]": tournament_name, 
-                                     "tournament[tournament_type]": "round robin", 
-                                     "tournament[open_signup]": "false", 
+                                     "tournament[name]": tournament_name,
+                                     "tournament[tournament_type]": "round robin",
+                                     "tournament[open_signup]": "false",
                                      "tournament[ranked_by]": "points scored",
                                      "tournament[start_at]": "2022-06-22T03:00:00"},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     return json.loads(response.text)['tournament']['id']
 
+def add_participants(tournament_id, participant_name):
+    response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/participants/bulk_add.json',
+                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
+                                     "participants[][name]": participant_name},
+                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    if response.status_code==200:
+        return "Player was successfully added"
+    else:
+        return "Error, this player already exists or some other problem"
 
 def get_matches(tournament_id):
   matches = []
@@ -94,5 +103,4 @@ def crop_rounds_images(tournament_id):
         row.save(save_path)
 
 
-#print(start_tournament(11330764))
-#create_tournament('hello')
+print(add_participants(create_tournament('new one'), 'mal'))
