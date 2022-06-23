@@ -15,15 +15,11 @@ def convertTuple(tup):
       str = str + item + ' '
   return str
 
-
 client = commands.Bot(command_prefix='!')
+
 @client.event
 async def on_ready():
   print('Bot is ready')
-
-@client.command()
-async def ping(ctx):
-  await ctx.send('Pong')
 
 
 @client.command()
@@ -75,4 +71,18 @@ async def tourneyresult(ctx, *message):
 
   await ctx.send(s.split('\n'))
   
+
+@client.command()
+async def starttourney(ctx):
+  url = ''
+  response = requests.get(url)
+  await ctx.send(response)
+
+@client.command()
+async def dmme(ctx):
+  dm = await ctx.message.author.create_dm()
+  await dm.send("You need to play the game until 18:00")
+  #response = client.wait_for_message(author=ctx.message.author, timeout=30) 
+  #await ctx.send(response) 
+
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
