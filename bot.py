@@ -187,6 +187,9 @@ async def dmme(ctx):
   #response = client.wait_for_message(author=ctx.message.author, timeout=30) 
   #await ctx.send(response) 
 
+
+
+################# NOT USED #################
 @client.command()
 async def getmatches(ctx):
   channel = ctx.channel.name
@@ -205,7 +208,7 @@ async def getmatches(ctx):
 
 
 
-
+################# NOT USED #################
 @client.command()
 async def getmatchesround(ctx, round):
   channel = ctx.channel.name
@@ -226,36 +229,51 @@ async def getmatchesround(ctx, round):
 
 
 
+
+
 @client.command()
 async def round(ctx, round):
-  channel = ctx.channel.name
-  tourney_id = gettourneyid(channel)
-  src=get_round_image(tourney_id, int(round))
-  if not src:
-    await ctx.send("**error**: There is no such tournament or round")
+  if ctx.author.guild_permissions.manage_channels:
+    channel = ctx.channel.name
+    tourney_id = gettourneyid(channel)
+    src=get_round_image(tourney_id, int(round))
+    if len(src)>35:
+      await ctx.send(src)
+      return
 
-  
-  with open(src, 'rb') as f:
-    picture = discord.File(f)
-    await ctx.send(file=picture)
+    
+    with open(src, 'rb') as f:
+      picture = discord.File(f)
+      await ctx.send(file=picture)
+  else:
+    await ctx.send('You lack the permission to retrieve rounds.')
 
 
 @client.command()
 async def board(ctx):
-  channel = ctx.channel.name
-  tourney_id = gettourneyid(channel)
-  path=get_leaderboard(tourney_id)
+  if ctx.author.guild_permissions.manage_channels:
+    channel = ctx.channel.name
+    tourney_id = gettourneyid(channel)
+    path=get_leaderboard(tourney_id)
 
-  with open(path, 'rb') as f:
-    picture = discord.File(f)
-    await ctx.send(file=picture)
+    with open(path, 'rb') as f:
+      picture = discord.File(f)
+      await ctx.send(file=picture)
+  else:
+    await ctx.send('You lack the permission to retrieve rounds.')
 
 @client.command()
 async def end(ctx):
-  channel = ctx.channel.name
-  tourney_id = gettourneyid(channel)
+  if ctx.author.guild_permissions.manage_channels:
+    channel = ctx.channel.name
+    tourney_id = gettourneyid(channel)
 
-  response = end_tournament(tourney_id)
-  await ctx.send(response)
+    response = end_tournament(tourney_id)
+    await ctx.send(response)
+  else:
+    await ctx.send('You lack the permission to retrieve rounds.')
+
+
+    
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
 
