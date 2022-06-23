@@ -137,6 +137,13 @@ def get_leaderboard(tournament_id):
     im.convert("RGB").save(f'{tournament_id}_leaderboard.jpg', quality=100)
     return f'{tournament_id}_leaderboard.jpg'
 
+def end_tournament(tournament_id):
+    response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/finalize.json',
+                            params={'api_key':'q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap'},
+                            headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    if response.status_code!=200:
+        return "All players should play each other before finishing"
+    return "Congratulations, tournament was finished"
 
-print(get_leaderboard(11331400))
+# print(end_tournament(11331400))
 # hti.screenshot(html_file='response.html', save_as='blue_page.png')
