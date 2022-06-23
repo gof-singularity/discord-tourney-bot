@@ -24,9 +24,9 @@ def add_participants(tournament_id, participant_name):
                                      "participants[][name]": participant_name},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     if response.status_code==200:
-        return "Player was successfully added"
+        return f"Player {participant_name} was successfully added"
     else:
-        return "Error, this player already exists or some other problem"
+        return f"Error, player {participant_name} already exists or some other problem"
 
 def get_matches(tournament_id):
   matches = []
