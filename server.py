@@ -113,7 +113,7 @@ def crop_rounds_images(tournament_id):
 def get_round_image(tournament_id, round):
     if os.path.exists(f'{tournament_id}/{round}.jpg'):
         return f'{tournament_id}/{round}.jpg'
-    else: return "There is no such tournament or round"
+    else: return "**error**: There is no such tournament or round"
 
 def get_leaderboard(tournament_id):
     response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}.json',
