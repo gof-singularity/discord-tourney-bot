@@ -13,6 +13,8 @@ import re
 from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants, get_round_image, get_leaderboard, end_tournament
 
 tourney_names_ids = []
+players_usernames_d_ids = []
+
 
 def convertTuple(tup):
   str = ''
@@ -35,7 +37,10 @@ def getidofusername(username, obj):
     if item['username'] == username:
       return item['id']
 
-
+def get_discord_idofusername(username, obj):
+  for item in obj:
+    if item['username'] == username:
+      return item['discord_id']
 
 
 client = commands.Bot(command_prefix='!', help_command=None)
@@ -71,6 +76,10 @@ async def create(ctx, tourney):
 @client.command()
 async def addme(ctx): 
   username = str(ctx.author).split('#')[0]
+
+  players_usernames_d_id = {'discord_id': ctx.author.id, 'username': username }
+  players_usernames_d_ids.append(players_usernames_d_id)
+
   channel = ctx.channel.name
   tourney_id = -1
   for item in tourney_names_ids:
@@ -169,7 +178,6 @@ async def result(ctx, *message):
 
 @client.command()
 async def start(ctx):
-  guild = ctx.message.guild
   if ctx.author.guild_permissions.manage_channels:
     channel = ctx.channel.name
     tourney_id = gettourneyid(channel)
@@ -177,6 +185,38 @@ async def start(ctx):
     response = start_tournament(tourney_id)
     if response == 200:
       await ctx.send(f'Tourney **{channel}** has started!!')
+
+
+    matches = get_matches(tourney_id)
+    tourney_names_ids = get_participants_names_ids(tourney_id)
+    print(tourney_names_ids)
+    s = ''
+    for match in matches:
+      if int(match["round"]) == 1:
+
+        player1 = getusername(match["player1_id"], tourney_names_ids)
+        player2 = getusername(match["player2_id"], tourney_names_ids)
+        
+        player1_discord_id = get_discord_idofusername(player1, players_usernames_d_ids)
+        player2_discord_id = get_discord_idofusername(player2, players_usernames_d_ids)
+
+        player1_user = await client.fetch_user(player1_discord_id)
+        player2_user = await client.fetch_user(player2_discord_id)
+
+        player1_discord_id = '<@' + str(player1_discord_id) + '>'
+        player2_discord_id = '<@' + str(player2_discord_id) + '>'
+
+
+        dm = await player1_user.create_dm()
+        await dm.send(f"You need to play the game with {player2_discord_id} until 18:00")
+        
+        dm = await player2_user.create_dm()
+        await dm.send(f"You need to play the game with {player1_discord_id} until 18:00")
+        
+
+        #s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
+        #print(s)
+        await ctx.send(player1_discord_id)
   else:
     await ctx.send('You do not have permission to start a tourney')
 
