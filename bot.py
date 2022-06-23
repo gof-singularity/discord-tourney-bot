@@ -128,7 +128,8 @@ async def tourneyresult(ctx, *message):
   matches = get_matches(tourney_id)
   participant_names_ids = get_participants_names_ids(tourney_id)
   winner_api_id = getidofusername(winner_username, participant_names_ids)
-  
+  loser_api_id = getidofusername(loser_username, participant_names_ids)
+
   print(matches)
   print(winner_api_id)
 
@@ -136,12 +137,17 @@ async def tourneyresult(ctx, *message):
   for match in matches:
     print(match["round"])
     if int(round) == int(match["round"]):
-      matchid= match["id"] 
+      print(match["player1_id"])
+      print(match["player2_id"])
+      if str(winner_api_id) == str(match["player1_id"]) and str(loser_api_id) == str(match["player2_id"]):
+        matchid= match["id"] 
+      elif str(winner_api_id) == str(match["player2_id"]) and str(loser_api_id) == str(match["player1_id"]):
+        matchid= match["id"] 
   
   if matchid == -1:
     print('error: could not find match')
     return
-
+ 
   print(tourney_id)
   print(matchid)
   print(winner_api_id)
