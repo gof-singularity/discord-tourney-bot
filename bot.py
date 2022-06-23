@@ -8,7 +8,7 @@ import requests
 import json
 import re
 
-from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants
+from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants, get_round_image
 
 tourney_names_ids = []
 
@@ -34,7 +34,10 @@ def getidofusername(username, obj):
     if item['username'] == username:
       return item['id']
 
-client = commands.Bot(command_prefix='!')
+
+
+
+client = commands.Bot(command_prefix='!', help_command=None)
 
 @client.event
 async def on_ready():
@@ -195,6 +198,41 @@ async def getmatches(ctx):
     print(s)
   await ctx.send(s)
 
+
+
+
+@client.command()
+async def getmatchesround(ctx, round):
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  response = get_matches(tourney_id)
+  tourney_names_ids = get_participants_names_ids(tourney_id)
+  print(tourney_names_ids)
+  s = ''
+  for item in response:
+    if round == str(item["round"]):
+      round = 'Round ' + str(item["round"])
+      player1 = getusername(item["player1_id"], tourney_names_ids)
+      player2 = getusername(item["player2_id"], tourney_names_ids)
+      s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
+      print(s)
+  await ctx.send(s)
+
+
+
+
+@client.command()
+async def round(ctx, round):
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  src=get_round_image(tourney_id, int(round))
+  if not src:
+    print("There is no such tournament or round")
+
+  
+  with open(src, 'rb') as f:
+    picture = discord.File(f)
+    await ctx.send(file=picture)
 
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
 
