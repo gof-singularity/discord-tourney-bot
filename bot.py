@@ -8,7 +8,7 @@ import requests
 import json
 import re
 
-from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament
+from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants
 
 tourney_names_ids = []
 
@@ -79,9 +79,9 @@ async def addme(ctx):
     print('invalid tourney_id')
     return
 
-
-  response = requests.post('http://localhost:8080/tournament/add-players', json = {"id": f'{tourney_id}', "playerList": [f'{username}']})
-  await ctx.send(response.text)
+  response = add_participants(tourney_id, username)
+  
+  await ctx.send(response)
 
 
 
