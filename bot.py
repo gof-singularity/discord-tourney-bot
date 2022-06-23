@@ -20,7 +20,6 @@ def convertTuple(tup):
       
       str = str + item + ' '
   return str
-
 def gettourneyid(channelname):
   for item in tourney_names_ids:
     if item["channelname"] == channelname:
@@ -64,8 +63,12 @@ async def createtourney(ctx, tourney):
 
       print(tourney_names_ids)
       
+      if id > 0:
+        await ctx.send(f'Tourney **{tourney}** created!')
+      else:
+        await ctx.send(f'error: Tourney could not be created')
 
-      await ctx.send(id)
+      
 
 
 @client.command()
@@ -173,7 +176,8 @@ async def starttourney(ctx):
   tourney_id = gettourneyid(channel)
   print(tourney_id)
   response = start_tournament(tourney_id)
-  await ctx.send(response)
+  if response == 200:
+    await ctx.send(f'Tourney **{channel}** has started!!')
 
 @client.command()
 async def dmme(ctx):
