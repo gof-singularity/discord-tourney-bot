@@ -30,4 +30,15 @@ def start_tournament(tournament_id):
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     return json.loads(response.text)
 
-print(set_winner(11329318, 280540812, 174301808))
+def get_participants_names_ids(tournament_id):
+    res = []
+    response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json',
+                            params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                            headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    data_json = json.loads(response.text)
+    for item in data_json:
+        res.append({'id':item['participant']['id'], 'username': item['participant']['name']})
+    return res
+
+
+print(get_participants_names_ids(11329318))
