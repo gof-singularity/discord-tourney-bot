@@ -8,7 +8,7 @@ import requests
 import json
 import re
 
-from server import get_matches, start_tournament, get_participants_names_ids, set_winner
+from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament
 
 tourney_names_ids = []
 
@@ -49,20 +49,20 @@ async def name(ctx):
 async def createtourney(ctx, tourney):
     guild = ctx.message.guild
     if ctx.author.guild_permissions.manage_channels:
-        await guild.create_text_channel(name=f'{tourney}')
-        response = requests.post('http://localhost:8080/tournament/create', json={ "name": f'{tourney}', "type": "round robin", "rankedBy": "points scored", "startAt": "2022-06-22T03:00:00"})
-        obj = json.loads(response.text)
-        tourney_id = obj["id"]
+      await guild.create_text_channel(name=f'{tourney}')
+    
+      id = create_tournament(tourney)
 
-        tourney_names_id = {} 
-        tourney_names_id["id"] = tourney_id
-        tourney_names_id["channelname"] = tourney
+      tourney_names_id = {} 
+      tourney_names_id["id"] = id
+      tourney_names_id["channelname"] = tourney
 
-        tourney_names_ids.append(tourney_names_id)
+      tourney_names_ids.append(tourney_names_id)
 
-        print(tourney_names_ids)
+      print(tourney_names_ids)
+      
 
-        await ctx.send(response.text)
+      await ctx.send(id)
 
 
 @client.command()
