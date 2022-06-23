@@ -30,5 +30,5 @@
 ![image](https://user-images.githubusercontent.com/104251147/175401211-638ca7e5-5252-47da-8372-578bab6536f7.png)
 ![image](https://user-images.githubusercontent.com/104251147/175405594-4c04b21b-4418-4491-a663-4626d1576ea6.png)
 
-### TourneyManager reponse:
+### TourneyManager response:
 ![image](https://user-images.githubusercontent.com/104251147/175406094-594650e9-3a6e-483c-ab04-3cc3ed58d3e9.png)
