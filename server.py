@@ -1,7 +1,18 @@
+from multiprocessing import Process
+
 import requests, json
 from PIL import Image
 import cairosvg
 import os
+
+def create_tournament(tournament_name):
+    response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
+                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
+                                     "name": tournament_name, "type": "round robin", "rankedBy": "points scored",
+                                     "startAt": "2022-06-22T03:00:00"},
+                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    return json.loads(response.text)['tournament']['id']
+
 
 def get_matches(tournament_id):
   matches = []
@@ -31,7 +42,10 @@ def start_tournament(tournament_id):
     response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/start.json',
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
-    # await crop_rounds_images()
+    p = Process(target=crop_rounds_images, args=(tournament_id,))
+    p.daemon = True
+    p.start()
+    p.join()
     return response.status_code
 
 def get_participants_names_ids(tournament_id):
@@ -53,11 +67,16 @@ def split_into_rows(im, row_height):
         y += row_height
 
 def crop_rounds_images(tournament_id):
-    svg_image = json.loads(requests.get(f"https://api.challonge.com/v1/tournaments/{tournament_id}.json",
+    response = requests.get(f"https://api.challonge.com/v1/tournaments/{tournament_id}.json",
                              params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
-                             headers={"User-Agent": "PostmanRuntime/7.29.0"}).text)['tournament']['live_image_url']
+                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    json_data = json.loads(response.text)
+    svg_image = json_data['tournament']['live_image_url']
+    participant_count = json_data['tournament']['participants_count']
     svg_code = requests.get(svg_image, params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
+    if os.path.exists(f'{tournament_id}.png'):
+        os.remove(f'{tournament_id}.png')
     cairosvg.surface.PNGSurface.convert(svg_code.text, write_to=f'{tournament_id}.png')
     im = Image.open(f'{tournament_id}.png')
     final_directory = os.path.join(os.getcwd(), f'{tournament_id}')
@@ -67,8 +86,9 @@ def crop_rounds_images(tournament_id):
     width, height = im.size
     im_crop = im.crop((0, 108, width, height-75))
     im_crop.save(f'{tournament_id}.png', quality=100)
-    for i, row in enumerate(split_into_rows(im_crop, 182.5)):
+    for i, row in enumerate(split_into_rows(im_crop, im_crop.height/((participant_count*(participant_count-1)/2)//(participant_count//2)))):
         save_path = os.path.join(OUTPUT_DIR, f'{i+1}.png')
         row.save(save_path)
 
-print(crop_rounds_images(11329318))
+
+print(start_tournament(11330764))
