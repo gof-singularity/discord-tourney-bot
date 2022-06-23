@@ -1,27 +1,38 @@
 from email import header
 from secrets import token_urlsafe
 from urllib import response
+from webbrowser import get
 import discord
 from discord.ext import commands
 import requests
 import json
+import re
 
-from server import get_matches, start_tournament
+from server import get_matches, start_tournament, get_participants_names_ids, set_winner
 
 tourney_names_ids = []
 
 def convertTuple(tup):
   str = ''
   for item in tup:
-      if item.startswith('@') or item.startswith('Round'):
+      if item.startswith('<') or item.startswith('@') or item.startswith('Round'):
         item = '\n' + item
       
       str = str + item + ' '
   return str
+
 def gettourneyid(channelname):
   for item in tourney_names_ids:
     if item["channelname"] == channelname:
       return item["id"]
+def getusername(id, obj):
+  for item in obj:
+    if item['id'] == id:
+      return item['username']
+def getidofusername(username, obj):
+  for item in obj:
+    if item['username'] == username:
+      return item['id']
 
 client = commands.Bot(command_prefix='!')
 
@@ -55,7 +66,7 @@ async def createtourney(ctx, tourney):
 
 
 @client.command()
-async def addme(ctx):
+async def addme(ctx): 
   username = str(ctx.author).split('#')[0]
   channel = ctx.channel.name
   tourney_id = -1
@@ -72,13 +83,80 @@ async def addme(ctx):
   response = requests.post('http://localhost:8080/tournament/add-players', json = {"id": f'{tourney_id}', "playerList": [f'{username}']})
   await ctx.send(response.text)
 
+
+
+
+
+
+
+
 @client.command()
 async def tourneyresult(ctx, *message):
-  channel = ctx.channel.name
+    
+  print(ctx.author)
+  print(ctx.author.id)
   s = convertTuple(message)
+  arr = s.split('\n')
+
+  winner_user = arr[2].split(' ')[0]
+  loser_user = arr[3].split(' ')[0]
+  round = arr[1].split(' ')[1]
+  fact = arr[4]
+  study = arr[5]
+
+  print(round)
+  print(fact)
+  print(study)
+
+  loser_id=re.sub(r"@", "", str(loser_user))
+  loser_id=re.sub(r"<", "", str(loser_id))
+  loser_id=re.sub(r">", "", str(loser_id))
+
+  winner_id=re.sub(r"@", "", str(winner_user))
+  winner_id=re.sub(r"<", "", str(winner_id))
+  winner_id=re.sub(r">", "", str(winner_id))
   
-  await ctx.send(s.split('\n'))
   
+  winner = await client.fetch_user(winner_id)
+  loser = await client.fetch_user(loser_id)
+
+  winner_username = str(winner).split('#')[0]
+  loser_username = str(loser).split('#')[0]
+
+  channel = ctx.channel.name
+  tourney_id = gettourneyid(channel)
+  matches = get_matches(tourney_id)
+  participant_names_ids = get_participants_names_ids(tourney_id)
+  winner_api_id = getidofusername(winner_username, participant_names_ids)
+  
+  print(matches)
+  print(winner_api_id)
+
+  matchid = -1
+  for match in matches:
+    print(match["round"])
+    if int(round) == int(match["round"]):
+      matchid= match["id"] 
+  
+  if matchid == -1:
+    print('error: could not find match')
+    return
+
+  print(tourney_id)
+  print(matchid)
+  print(winner_api_id)
+
+  set_winner(tourney_id, matchid, winner_api_id)
+
+  await ctx.send(winner_user + ' won')
+  
+
+
+
+
+
+
+
 
 @client.command()
 async def starttourney(ctx):
@@ -100,8 +178,16 @@ async def getmatches(ctx):
   channel = ctx.channel.name
   tourney_id = gettourneyid(channel)
   response = get_matches(tourney_id)
-  print(response)
-  await ctx.send(response)
+  tourney_names_ids = get_participants_names_ids(tourney_id)
+  print(tourney_names_ids)
+  s = ''
+  for item in response:
+    round = 'Round ' + str(item["round"])
+    player1 = getusername(item["player1_id"], tourney_names_ids)
+    player2 = getusername(item["player2_id"], tourney_names_ids)
+    s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
+    print(s)
+  await ctx.send(s)
 
 
 client.run('OTg5MDQ0OTU3NTAxMzU4MTAw.GX--PX.e9JS1HKOshKahPcT7q5NKBnghO9SJagIi4XC4o')
