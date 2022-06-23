@@ -128,8 +128,14 @@ def get_leaderboard(tournament_id):
     soup = bs4.BeautifulSoup(response2.text, "html")
     div = soup.find("div", {"class": "standings-container"})
     content = str(div)
+    hti.size = (600, 400)
     hti.screenshot(html_str=content, save_as=f'{tournament_id}_leaderboard.png')
-    return f'{tournament_id}_leaderboard.png'
+    im = Image.open(f'{tournament_id}_leaderboard.png')
+    background = Image.new(im.mode[:-1], im.size, (255, 255, 255))
+    background.paste(im, im.split()[-1])
+    im = background
+    im.convert("RGB").save(f'{tournament_id}_leaderboard.jpg', quality=100)
+    return f'{tournament_id}_leaderboard.jpg'
 
 
 print(get_leaderboard(11331400))
