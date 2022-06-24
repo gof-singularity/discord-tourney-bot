@@ -110,12 +110,15 @@ async def result(ctx, *message):
   print(ctx.author.id)
   s = convertTuple(message)
   arr = s.split('\n')
-
-  winner_user = arr[2].split(' ')[0]
-  loser_user = arr[3].split(' ')[0]
-  round = arr[1].split(' ')[1]
-  fact = arr[4]
-  study = arr[5]
+  try: 
+    winner_user = arr[2].split(' ')[0]
+    loser_user = arr[3].split(' ')[0]
+    round = arr[1].split(' ')[1]
+    fact = arr[4]
+    study = arr[5]
+  except IndexError:
+    await ctx.send('**error**: something is missing')
+    return
 
   print(round)
   print(fact)
@@ -132,6 +135,10 @@ async def result(ctx, *message):
   
   winner = await client.fetch_user(winner_id)
   loser = await client.fetch_user(loser_id)
+
+  if winner != ctx.author:
+    await ctx.send('**error**: authentication error')
+    return
 
   winner_username = str(winner).split('#')[0]
   loser_username = str(loser).split('#')[0]
