@@ -9,6 +9,7 @@ from discord.ext import commands
 import requests
 import json
 import re
+import psycopg2
 
 from server import get_matches, start_tournament, get_participants_names_ids, set_winner, create_tournament, add_participants, get_round_image, get_leaderboard, end_tournament
 
@@ -104,7 +105,7 @@ async def addme(ctx):
 
 @client.command()
 async def result(ctx, *message):
-    
+  postgres_username = str(ctx.author).split('#')[0]
   print(ctx.author)
   print(ctx.author.id)
   s = convertTuple(message)
@@ -166,6 +167,32 @@ async def result(ctx, *message):
 
   set_winner(tourney_id, matchid, winner_api_id)
 
+  try:
+    connection = psycopg2.connect(user="wwanpexp",
+                                  password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
+                                  host="batyr.db.elephantsql.com",
+                                  port="5432",
+                                  database="wwanpexp")
+    cursor = connection.cursor()
+
+    postgres_insert_query = """ INSERT INTO customuser (ID, NAME, FACT, STUDY) VALUES (%s,%s, %s, %s)"""
+    record_to_insert = (str(loser_id), str(loser_username), str(fact), str(study))
+    cursor.execute(postgres_insert_query, record_to_insert)
+    
+    connection.commit()
+    count = cursor.rowcount
+    print(count, "Record inserted successfully into mobile table")
+
+  except (Exception, psycopg2.Error) as error:
+      print("Failed to insert record into mobile table", error)
+
+  finally:
+      # closing database connection.
+      if connection:
+          cursor.close()
+          connection.close()
+          print("PostgreSQL connection is closed")
+
   await ctx.send(winner_user + ' won')
   
 
@@ -208,15 +235,14 @@ async def start(ctx):
 
 
         dm = await player1_user.create_dm()
-        await dm.send(f"You need to play the game with {player2_discord_id} until 18:00")
+        await dm.send(f"You need to play {channel} with {player2_discord_id} until 18:00")
         
         dm = await player2_user.create_dm()
-        await dm.send(f"You need to play the game with {player1_discord_id} until 18:00")
+        await dm.send(f"You need to play {channel} with {player1_discord_id} until 18:00")
         
 
         #s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
         #print(s)
-        await ctx.send(player1_discord_id)
   else:
     await ctx.send('You do not have permission to start a tourney')
 
@@ -312,6 +338,47 @@ async def end(ctx):
     await ctx.send(response)
   else:
     await ctx.send('You lack the permission to retrieve rounds.')
+
+
+
+@client.command()
+async def profile(ctx):
+  try:
+    connection = psycopg2.connect(user="wwanpexp",
+                                  password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
+                                  host="batyr.db.elephantsql.com",
+                                  port="5432",
+                                  database="wwanpexp")
+    cursor = connection.cursor()
+
+    name = str(ctx.author).split('#')[0]
+    postgres_select_query = f"select * from customuser where name = '{name}'"
+    cursor.execute(postgres_select_query)
+    mobile_records = cursor.fetchall()
+    print(mobile_records)
+
+    connection.commit()
+    count = cursor.rowcount
+    print(count, "Record select successfully into mobile table")
+    await ctx.send(mobile_records)
+  except (Exception, psycopg2.Error) as error:
+      print("Failed to select record into mobile table", error)
+
+  finally:
+      # closing database connection.
+      if connection:
+          cursor.close()
+          connection.close()
+          print("PostgreSQL connection is closed")
+
+
+
+
+
+
+
+
+
 
 
     
