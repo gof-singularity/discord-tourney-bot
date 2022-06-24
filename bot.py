@@ -152,7 +152,31 @@ async def result(ctx, *message):
 
   print(matches)
   print(winner_api_id)
+  try:
+    connection = psycopg2.connect(user="wwanpexp",
+                                  password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
+                                  host="batyr.db.elephantsql.com",
+                                  port="5432",
+                                  database="wwanpexp")
+    cursor = connection.cursor()
 
+    postgres_insert_query = """ INSERT INTO customuser (ID, NAME, FACT, STUDY) VALUES (%s,%s, %s, %s)"""
+    record_to_insert = (str(loser_id), str(loser_username), str(fact), str(study))
+    cursor.execute(postgres_insert_query, record_to_insert)
+    
+    connection.commit()
+    count = cursor.rowcount
+    print(count, "Record inserted successfully into mobile table")
+
+  except (Exception, psycopg2.Error) as error:
+      print("Failed to insert record into mobile table", error)
+
+  finally:
+      # closing database connection.
+      if connection:
+          cursor.close()
+          connection.close()
+          print("PostgreSQL connection is closed")
   matchid = -1
   for match in matches:
     print(match["round"])
@@ -181,31 +205,7 @@ async def result(ctx, *message):
   set_winner(tourney_id, matchid, winner_api_id)
   matches = get_matches(tourney_id)
   print(matches)
-  try:
-    connection = psycopg2.connect(user="wwanpexp",
-                                  password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
-                                  host="batyr.db.elephantsql.com",
-                                  port="5432",
-                                  database="wwanpexp")
-    cursor = connection.cursor()
-
-    postgres_insert_query = """ INSERT INTO customuser (ID, NAME, FACT, STUDY) VALUES (%s,%s, %s, %s)"""
-    record_to_insert = (str(loser_id), str(loser_username), str(fact), str(study))
-    cursor.execute(postgres_insert_query, record_to_insert)
-    
-    connection.commit()
-    count = cursor.rowcount
-    print(count, "Record inserted successfully into mobile table")
-
-  except (Exception, psycopg2.Error) as error:
-      print("Failed to insert record into mobile table", error)
-
-  finally:
-      # closing database connection.
-      if connection:
-          cursor.close()
-          connection.close()
-          print("PostgreSQL connection is closed")
+  
 
   await ctx.send(winner_user + ' won')
   
