@@ -250,8 +250,6 @@ async def start(ctx):
 async def dmme(ctx):
   dm = await ctx.message.author.create_dm()
   await dm.send("You need to play the game until 18:00")
-  #response = client.wait_for_message(author=ctx.message.author, timeout=30) 
-  #await ctx.send(response) 
 
 
 
