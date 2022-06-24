@@ -157,6 +157,12 @@ async def result(ctx, *message):
       elif str(winner_api_id) == str(match["player2_id"]) and str(loser_api_id) == str(match["player1_id"]):
         matchid= match["id"] 
   
+  for match in matches:
+    if matchid == match["id"]:
+      if match["winner_id"] != None:
+        await ctx.send('**error**: you have already played the match')
+        return
+
   if matchid == -1:
     print('error: could not find match')
     return
@@ -166,7 +172,8 @@ async def result(ctx, *message):
   print(winner_api_id)
 
   set_winner(tourney_id, matchid, winner_api_id)
-
+  matches = get_matches(tourney_id)
+  print(matches)
   try:
     connection = psycopg2.connect(user="wwanpexp",
                                   password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
