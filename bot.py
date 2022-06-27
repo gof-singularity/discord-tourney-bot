@@ -242,11 +242,6 @@ async def start(ctx):
         await ctx.send('You do not have permission to start a tourney')
 
 
-@client.command()
-async def dmme(ctx):
-    dm = await ctx.message.author.create_dm()
-    await dm.send("You need to play the game until 18:00")
-
 
 ################# NOT USED #################
 @client.command()
