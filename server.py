@@ -7,9 +7,12 @@ import os
 from html2image import Html2Image
 hti = Html2Image()
 import bs4
+
+api_key = 'q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap'
+
 def create_tournament(tournament_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments.json',
-                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
+                             params={"api_key": api_key,
                                      "tournament[name]": tournament_name,
                                      "tournament[tournament_type]": "round robin",
                                      "tournament[open_signup]": "false",
@@ -20,7 +23,7 @@ def create_tournament(tournament_name):
 
 def add_participants(tournament_id, participant_name):
     response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/participants/bulk_add.json',
-                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
+                             params={"api_key": api_key,
                                      "participants[][name]": participant_name},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     if response.status_code==200:
@@ -30,7 +33,7 @@ def add_participants(tournament_id, participant_name):
 
 def get_matches(tournament_id):
   matches = []
-  response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json', params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+  response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json', params={"api_key": api_key},
                           headers={"User-Agent": "PostmanRuntime/7.29.0"})
   data_json = json.loads(response.text)
   for match in data_json:
@@ -41,20 +44,20 @@ def get_matches(tournament_id):
 
 def set_winner(tournament_id, match_id, winner_id: str):
     match = json.loads(requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}/matches/{match_id}.json',
-                               params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                               params={"api_key": api_key},
                                headers={"User-Agent": "PostmanRuntime/7.29.0"}).text)
     if match['match']['player1_id'] == winner_id:
         score = "1-0"
     else: score = "0-1"
     response = requests.put(f'https://api.challonge.com/v1/tournaments/{tournament_id}/matches/{match_id}.json',
-                          params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap",
+                          params={"api_key": api_key,
                                   "match[winner_id]": winner_id, "match[scores_csv]": score},
                           headers={"User-Agent": "PostmanRuntime/7.29.0"})
     return response.status_code
 
 def start_tournament(tournament_id):
     response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/start.json',
-                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                             params={"api_key": api_key},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     p = Process(target=crop_rounds_images, args=(tournament_id,))
     p.daemon = True
@@ -65,7 +68,7 @@ def start_tournament(tournament_id):
 def get_participants_names_ids(tournament_id):
     res = []
     response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json',
-                            params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                            params={"api_key": api_key},
                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
     data_json = json.loads(response.text)
     for item in data_json:
@@ -82,12 +85,12 @@ def split_into_rows(im, row_height):
 
 def crop_rounds_images(tournament_id):
     response = requests.get(f"https://api.challonge.com/v1/tournaments/{tournament_id}.json",
-                             params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                             params={"api_key": api_key},
                              headers={"User-Agent": "PostmanRuntime/7.29.0"})
     json_data = json.loads(response.text)
     svg_image = json_data['tournament']['live_image_url']
     participant_count = json_data['tournament']['participants_count']
-    svg_code = requests.get(svg_image, params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+    svg_code = requests.get(svg_image, params={"api_key": api_key},
                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
     if os.path.exists(f'{tournament_id}.png'):
         os.remove(f'{tournament_id}.png')
@@ -117,11 +120,11 @@ def get_round_image(tournament_id, round):
 
 def get_leaderboard(tournament_id):
     response = requests.get(f'https://api.challonge.com/v1/tournaments/{tournament_id}.json',
-                            params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                            params={"api_key": api_key},
                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
     unique_hash = json.loads(response.text)['tournament']['url']
     response2 = requests.get(f'https://challonge.com/{unique_hash}/standings',
-                       params={"api_key": "q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap"},
+                       params={"api_key": api_key},
                        headers={"User-Agent": "PostmanRuntime/7.29.0"})
     with open("response.html", "w") as f:
         f.write(response2.text)
@@ -139,7 +142,7 @@ def get_leaderboard(tournament_id):
 
 def end_tournament(tournament_id):
     response = requests.post(f'https://api.challonge.com/v1/tournaments/{tournament_id}/finalize.json',
-                            params={'api_key':'q1zaMKGU0PGgNoL2DzZJLXGHXiaQLMFMAM4Huxap'},
+                            params={'api_key':api_key},
                             headers={"User-Agent": "PostmanRuntime/7.29.0"})
     if response.status_code!=200:
         return "All players should play with each other before finishing"
