@@ -1,13 +1,5 @@
-from email import header
-from http.client import ResponseNotReady
-from multiprocessing.connection import wait
-from secrets import token_urlsafe
-from urllib import response
-from webbrowser import get
 import discord
 from discord.ext import commands
-import requests
-import json
 import re
 import psycopg2
 
