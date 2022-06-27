@@ -88,9 +88,7 @@ async def create(ctx, tourney):
 
         id = create_tournament(tourney)
 
-        tourney_names_id = {}
-        tourney_names_id["id"] = id
-        tourney_names_id["channelname"] = tourney
+        tourney_names_id = {"id": id, "channelname": tourney}
 
         tourney_names_ids.append(tourney_names_id)
 
@@ -100,6 +98,8 @@ async def create(ctx, tourney):
             await ctx.send(f'Tourney **{tourney}** created!')
         else:
             await ctx.send(f'error: Tourney could not be created')
+    else:
+        await guild.create_text_channel('You do not have permission to do this action')
 
 
 @client.command()
@@ -127,9 +127,6 @@ async def addme(ctx):
 
 @client.command()
 async def result(ctx, *message):
-    postgres_username = str(ctx.author).split('#')[0]
-    print(ctx.author)
-    print(ctx.author.id)
     s = convert_tuple(message)
     arr = s.split('\n')
     try:
@@ -170,7 +167,6 @@ async def result(ctx, *message):
     participant_names_ids = get_participants_names_ids(tourney_id)
     winner_api_id = get_id_of_username(winner_username, participant_names_ids)
     loser_api_id = get_id_of_username(loser_username, participant_names_ids)
-
 
     postgres_insert_query(loser_id, loser_username, fact, study)
 
