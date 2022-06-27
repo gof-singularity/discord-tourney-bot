@@ -10,7 +10,35 @@ tourney_names_ids = []
 players_usernames_d_ids = []
 
 
-def convertTuple(tup):
+def postgres_insert_query(loser_id, loser_username, fact, study):
+    try:
+        connection = psycopg2.connect(user="wwanpexp",
+                                      password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
+                                      host="batyr.db.elephantsql.com",
+                                      port="5432",
+                                      database="wwanpexp")
+        cursor = connection.cursor()
+
+        postgres_insert_query = """ INSERT INTO customuser (ID, NAME, FACT, STUDY) VALUES (%s,%s, %s, %s)"""
+        record_to_insert = (str(loser_id), str(loser_username), str(fact), str(study))
+        cursor.execute(postgres_insert_query, record_to_insert)
+
+        connection.commit()
+        count = cursor.rowcount
+        print(count, "Record inserted successfully into mobile table")
+
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to insert record into mobile table", error)
+
+    finally:
+        # closing database connection.
+        if connection:
+            cursor.close()
+            connection.close()
+            print("PostgreSQL connection is closed")
+
+
+def convert_tuple(tup):
     str = ''
     for item in tup:
         if item.startswith('<') or item.startswith('@') or item.startswith('Round'):
@@ -20,25 +48,25 @@ def convertTuple(tup):
     return str
 
 
-def gettourneyid(channelname):
+def get_tourney_id(channelname):
     for item in tourney_names_ids:
         if item["channelname"] == channelname:
             return item["id"]
 
 
-def getusername(id, obj):
+def get_username(id, obj):
     for item in obj:
         if item['id'] == id:
             return item['username']
 
 
-def getidofusername(username, obj):
+def get_id_of_username(username, obj):
     for item in obj:
         if item['username'] == username:
             return item['id']
 
 
-def get_discord_idofusername(username, obj):
+def get_discord_id_of_username(username, obj):
     for item in obj:
         if item['username'] == username:
             return item['discord_id']
@@ -102,7 +130,7 @@ async def result(ctx, *message):
     postgres_username = str(ctx.author).split('#')[0]
     print(ctx.author)
     print(ctx.author.id)
-    s = convertTuple(message)
+    s = convert_tuple(message)
     arr = s.split('\n')
     try:
         winner_user = arr[2].split(' ')[0]
@@ -137,39 +165,15 @@ async def result(ctx, *message):
     loser_username = str(loser).split('#')[0]
 
     channel = ctx.channel.name
-    tourney_id = gettourneyid(channel)
+    tourney_id = get_tourney_id(channel)
     matches = get_matches(tourney_id)
     participant_names_ids = get_participants_names_ids(tourney_id)
-    winner_api_id = getidofusername(winner_username, participant_names_ids)
-    loser_api_id = getidofusername(loser_username, participant_names_ids)
+    winner_api_id = get_id_of_username(winner_username, participant_names_ids)
+    loser_api_id = get_id_of_username(loser_username, participant_names_ids)
 
-    print(matches)
-    print(winner_api_id)
-    try:
-        connection = psycopg2.connect(user="wwanpexp",
-                                      password="lW9ahJNBZ0mGQUI9VtWCi2R44KWNvjUc",
-                                      host="batyr.db.elephantsql.com",
-                                      port="5432",
-                                      database="wwanpexp")
-        cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO customuser (ID, NAME, FACT, STUDY) VALUES (%s,%s, %s, %s)"""
-        record_to_insert = (str(loser_id), str(loser_username), str(fact), str(study))
-        cursor.execute(postgres_insert_query, record_to_insert)
+    postgres_insert_query(loser_id, loser_username, fact, study)
 
-        connection.commit()
-        count = cursor.rowcount
-        print(count, "Record inserted successfully into mobile table")
-
-    except (Exception, psycopg2.Error) as error:
-        print("Failed to insert record into mobile table", error)
-
-    finally:
-        # closing database connection.
-        if connection:
-            cursor.close()
-            connection.close()
-            print("PostgreSQL connection is closed")
     matchid = -1
     for match in matches:
         print(match["round"])
@@ -206,7 +210,7 @@ async def result(ctx, *message):
 async def start(ctx):
     if ctx.author.guild_permissions.manage_channels:
         channel = ctx.channel.name
-        tourney_id = gettourneyid(channel)
+        tourney_id = get_tourney_id(channel)
         print(tourney_id)
         response = start_tournament(tourney_id)
         if response == 200:
@@ -218,11 +222,11 @@ async def start(ctx):
         s = ''
         for match in matches:
             if int(match["round"]) == 1:
-                player1 = getusername(match["player1_id"], tourney_names_ids)
-                player2 = getusername(match["player2_id"], tourney_names_ids)
+                player1 = get_username(match["player1_id"], tourney_names_ids)
+                player2 = get_username(match["player2_id"], tourney_names_ids)
 
-                player1_discord_id = get_discord_idofusername(player1, players_usernames_d_ids)
-                player2_discord_id = get_discord_idofusername(player2, players_usernames_d_ids)
+                player1_discord_id = get_discord_id_of_username(player1, players_usernames_d_ids)
+                player2_discord_id = get_discord_id_of_username(player2, players_usernames_d_ids)
 
                 player1_user = await client.fetch_user(player1_discord_id)
                 player2_user = await client.fetch_user(player2_discord_id)
@@ -252,15 +256,15 @@ async def dmme(ctx):
 @client.command()
 async def getmatches(ctx):
     channel = ctx.channel.name
-    tourney_id = gettourneyid(channel)
+    tourney_id = get_tourney_id(channel)
     response = get_matches(tourney_id)
     tourney_names_ids = get_participants_names_ids(tourney_id)
     print(tourney_names_ids)
     s = ''
     for item in response:
         round = 'Round ' + str(item["round"])
-        player1 = getusername(item["player1_id"], tourney_names_ids)
-        player2 = getusername(item["player2_id"], tourney_names_ids)
+        player1 = get_username(item["player1_id"], tourney_names_ids)
+        player2 = get_username(item["player2_id"], tourney_names_ids)
         s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
         print(s)
     await ctx.send(s)
@@ -270,7 +274,7 @@ async def getmatches(ctx):
 @client.command()
 async def getmatchesround(ctx, round):
     channel = ctx.channel.name
-    tourney_id = gettourneyid(channel)
+    tourney_id = get_tourney_id(channel)
     response = get_matches(tourney_id)
     tourney_names_ids = get_participants_names_ids(tourney_id)
     print(tourney_names_ids)
@@ -278,8 +282,8 @@ async def getmatchesround(ctx, round):
     for item in response:
         if round == str(item["round"]):
             round = 'Round ' + str(item["round"])
-            player1 = getusername(item["player1_id"], tourney_names_ids)
-            player2 = getusername(item["player2_id"], tourney_names_ids)
+            player1 = get_username(item["player1_id"], tourney_names_ids)
+            player2 = get_username(item["player2_id"], tourney_names_ids)
             s = s + round + '\n' + str(player1) + ' vs ' + str(player2) + '\n'
             print(s)
     await ctx.send(s)
@@ -289,7 +293,7 @@ async def getmatchesround(ctx, round):
 async def round(ctx, round):
     if ctx.author.guild_permissions.manage_channels:
         channel = ctx.channel.name
-        tourney_id = gettourneyid(channel)
+        tourney_id = get_tourney_id(channel)
         src = get_round_image(tourney_id, int(round))
         if len(src) > 35:
             await ctx.send(src)
@@ -306,7 +310,7 @@ async def round(ctx, round):
 async def board(ctx):
     if ctx.author.guild_permissions.manage_channels:
         channel = ctx.channel.name
-        tourney_id = gettourneyid(channel)
+        tourney_id = get_tourney_id(channel)
         path = get_leaderboard(tourney_id)
 
         with open(path, 'rb') as f:
@@ -320,7 +324,7 @@ async def board(ctx):
 async def end(ctx):
     if ctx.author.guild_permissions.manage_channels:
         channel = ctx.channel.name
-        tourney_id = gettourneyid(channel)
+        tourney_id = get_tourney_id(channel)
 
         response = end_tournament(tourney_id)
         await ctx.send(response)
