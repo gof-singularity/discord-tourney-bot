@@ -29,7 +29,7 @@ def add_participants(tournament_id, participant_name):
     if response.status_code==200:
         return f"Player **{participant_name}** was successfully added"
     else:
-        return f"Error, player {participant_name} already exists or some other problem"
+        return f"*Error*, player **{participant_name}** already exists"
 
 def get_matches(tournament_id):
   matches = []
